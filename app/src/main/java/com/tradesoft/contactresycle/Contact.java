@@ -1,12 +1,10 @@
 package com.tradesoft.contactresycle;
 
-import android.net.Uri;
-
 
 public class Contact {
     private String userName;
     private String phoneNumber;
-    private Uri profilePicture;
+    private String profilePicture;
 
     public String getUserName() {
         return userName;
@@ -24,11 +22,11 @@ public class Contact {
         this.phoneNumber = phoneNumber;
     }
 
-    public Uri getProfilePicture() {
+    public String getProfilePicture() {
         return profilePicture;
     }
 
-    public void setProfilePicture(Uri profilePicture) {
+    public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
     }
 }
