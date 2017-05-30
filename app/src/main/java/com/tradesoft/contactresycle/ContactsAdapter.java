@@ -16,6 +16,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 import java.io.IOException;
 
 import butterknife.BindView;
@@ -28,6 +30,7 @@ class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHo
     private int nameColIdx;
     private int idColIdx;
     private int picColIndx;
+    private int numColIndx;
 
     public ContactsAdapter(Context context) {
         this.context = context;
@@ -44,6 +47,7 @@ class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHo
         nameColIdx = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY);
         idColIdx = cursor.getColumnIndex(ContactsContract.Contacts._ID);
         picColIndx = cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI);
+        numColIndx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
     }
 
     @Override
@@ -51,11 +55,9 @@ class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHo
         cursor.moveToPosition(position);
         String contactName = cursor.getString(nameColIdx);
         long contactId = cursor.getLong(idColIdx);
-        /* Uri my_contact_Uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, String.valueOf(contactId));
-        InputStream photo_stream = ContactsContract.Contacts.openContactPhotoInputStream(context.getContentResolver(),my_contact_Uri);
-        Bitmap bitmap = BitmapFactory.decodeStream(photo_stream);
-        holder.ivUserPhoto.setImageBitmap(bitmap);*/
-        Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
+        String number = cursor.getString(numColIndx);
+        String link = cursor.getString(picColIndx);
+       /* Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
         Uri photoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.CONTENT_DIRECTORY);
         Bitmap bitmap = null;
         try {
@@ -63,8 +65,13 @@ class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHo
         } catch (IOException e) {
             e.printStackTrace();
         }
-        holder.ivUserPhoto.setImageBitmap(bitmap);
-        holder.tvUserName.setText(contactName + "  " + contactId);
+        holder.ivUserPhoto.setImageBitmap(bitmap);*/
+        Glide.with(context)
+                .load(link)
+                .placeholder(R.mipmap.ic_launcher)
+                .bitmapTransform(new CropCircleTransformation(context))
+                .into(holder.ivUserPhoto);
+        holder.tvUserName.setText(contactName + "  "+number);
 
     }
 
@@ -73,6 +80,29 @@ class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHo
         if (cursor == null)
             return 0;
         return cursor.getCount();
+    }
+
+    private String getPhoneNumber(long contactId){
+        String phoneNumber = "";
+        Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + contactId, null, null);
+        while (phones.moveToNext()) {
+            String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            int type = phones.getInt(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));
+            switch (type) {
+                case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
+                    // do something with the Home number here...
+                    break;
+                case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
+                    phoneNumber = number;
+                    break;
+                case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
+                    // do something with the Work number here...
+                    break;
+            }
+        }
+        phones.close();
+        return phoneNumber;
     }
 
     public class ContactViewHolder extends RecyclerView.ViewHolder implements View.OnTouchListener {
