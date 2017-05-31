@@ -15,6 +15,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -44,7 +45,7 @@ public class ContactList extends Fragment {
     EditText etSearch;
     private String searchKey = "";
     private ContactsAdapter adapter;
-    private ArrayList<Contact> loadedContasts = new ArrayList<>();
+    private ArrayList<Contact> loadedContacts = new ArrayList<>();
     private ArrayList<Contact> searchContacts = new ArrayList<>();
 
     @Override
@@ -63,7 +64,12 @@ public class ContactList extends Fragment {
     }
 
     private void initView() {
+        etSearch.requestFocus();
+        etSearch.clearFocus();
+        etSearch.setFocusableInTouchMode(true);
+        etSearch.setImeOptions(EditorInfo.IME_ACTION_DONE);
         etSearch.addTextChangedListener(new MyTextWatcher());
+        ((MainActivity) getActivity()).hideKeyBoard();
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(),
@@ -85,6 +91,18 @@ public class ContactList extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        etSearch.setText("");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        ((MainActivity) getActivity()).hideKeyBoard();
+    }
+
+    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
@@ -102,10 +120,10 @@ public class ContactList extends Fragment {
                         contact.setUserName(c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)));
                         contact.setPhoneNumber(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
                         contact.setProfilePicture(c.getString(c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)));
-                        loadedContasts.add(contact);
+                        loadedContacts.add(contact);
                     }
                 }
-                searchContacts.addAll(loadedContasts);
+                searchContacts.addAll(loadedContacts);
                 adapter.setData(searchContacts);
                 adapter.notifyDataSetChanged();
             }
@@ -126,7 +144,24 @@ public class ContactList extends Fragment {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
+            searchKey = s.toString().toUpperCase();
+            searchContacts.clear();
+            for (Contact item : loadedContacts) {
+                try {
+                    if (item.getUserName().toUpperCase().contains(searchKey)) {
+                        searchContacts.add(item);
+                    }
+                } catch (IllegalStateException ignore) {
 
+                }
+            }
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adapter.setData(searchContacts);
+                    adapter.notifyDataSetChanged();
+                }
+            });
         }
 
         @Override
