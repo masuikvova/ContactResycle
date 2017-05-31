@@ -21,6 +21,7 @@ import butterknife.ButterKnife;
 class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHolder> {
     private Context context;
     private ArrayList<Contact> dataSet = new ArrayList<>();
+    private ArrayList<Contact> selectedDataSet = new ArrayList<>();
 
     public ContactsAdapter(Context context) {
         this.context = context;
@@ -36,6 +37,10 @@ class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHo
         dataSet = data;
     }
 
+    public void setSelectedData(ArrayList<Contact> data) {
+        selectedDataSet = data;
+    }
+
     @Override
     public void onBindViewHolder(ContactViewHolder holder, int position) {
         Contact contact = dataSet.get(position);
@@ -46,6 +51,15 @@ class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHo
                 .into(holder.ivUserPhoto);
         holder.tvUserName.setText(contact.getUserName());
         holder.tvPhoneNumber.setText(contact.getPhoneNumber());
+        if (selectedDataSet != null && selectedDataSet.size() > 0 && selectedDataSet.contains(contact)) {
+            holder.ivActive.setImageResource(R.drawable.ic_selected);
+            holder.tvUserName.setTextColor(Color.parseColor("#338f32"));
+            holder.ivActive.setTag(true);
+        } else {
+            holder.ivActive.setImageResource(R.drawable.ic_not_selected);
+            holder.tvUserName.setTextColor(Color.parseColor("#000000"));
+            holder.ivActive.setTag(false);
+        }
     }
 
     @Override

@@ -29,4 +29,12 @@ public class Contact {
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        else
+            return phoneNumber.equals(((Contact) obj).getPhoneNumber());
+    }
 }

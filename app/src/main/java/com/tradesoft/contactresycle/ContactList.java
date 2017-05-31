@@ -22,7 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +54,7 @@ public class ContactList extends Fragment {
     private ContactsAdapter adapter;
     private ArrayList<Contact> loadedContacts = new ArrayList<>();
     private ArrayList<Contact> searchContacts = new ArrayList<>();
+    private ArrayList<Contact> checkedContacts = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -84,7 +85,17 @@ public class ContactList extends Fragment {
                 new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, final int position) {
-                        Toast.makeText(getActivity(), "pos = " + position, Toast.LENGTH_SHORT).show();
+                        ImageView ivActive = (ImageView) view.findViewById(R.id.ivActive);
+                        if (((boolean) ivActive.getTag())) {
+                            checkedContacts.remove(searchContacts.get(position));
+                            adapter.setSelectedData(checkedContacts);
+                            adapter.notifyDataSetChanged();
+                        } else {
+                            if (!checkedContacts.contains(searchContacts.get(position)))
+                                checkedContacts.add(searchContacts.get(position));
+                            adapter.setSelectedData(checkedContacts);
+                            adapter.notifyDataSetChanged();
+                        }
                     }
 
                     @Override
@@ -124,7 +135,7 @@ public class ContactList extends Fragment {
         getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
             @Override
             public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-                return new CursorLoader(getActivity(), ContactsContract.CommonDataKinds.Phone.CONTENT_URI, PROJECTION, selection, selectionArgs, null);
+                return new CursorLoader(getActivity(), ContactsContract.CommonDataKinds.Phone.CONTENT_URI, PROJECTION, selection, selectionArgs, "display_name ASC");
             }
 
             @Override
@@ -140,6 +151,7 @@ public class ContactList extends Fragment {
                 }
                 searchContacts.addAll(loadedContacts);
                 adapter.setData(searchContacts);
+                adapter.setSelectedData(checkedContacts);
                 adapter.notifyDataSetChanged();
             }
 
