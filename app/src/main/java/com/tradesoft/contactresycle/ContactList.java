@@ -1,8 +1,13 @@
 package com.tradesoft.contactresycle;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -20,6 +25,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -35,6 +41,7 @@ public class ContactList extends Fragment {
             ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
             ContactsContract.Contacts.PHOTO_URI
     };
+    private static final int REQUEST_CODE_PERMISSIONS = 0;
     String selection = ContactsContract.Contacts.HAS_PHONE_NUMBER + " > ?";
     String[] selectionArgs = new String[]{"0"};
 
@@ -105,7 +112,15 @@ public class ContactList extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        int readContacts = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_CONTACTS);
+        if (readContacts != PackageManager.PERMISSION_GRANTED) {
+            requestPermission();
+        } else {
+            loadContacts();
+        }
+    }
 
+    private void loadContacts() {
         getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
             @Override
             public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
@@ -168,6 +183,36 @@ public class ContactList extends Fragment {
         public void afterTextChanged(Editable s) {
             searchKey = s.toString().toUpperCase();
 
+        }
+    }
+
+    @TargetApi(23)
+    private void requestPermission() {
+        int hasPermission = getActivity().checkSelfPermission(Manifest.permission.READ_CONTACTS);
+
+        List<String> permissionList = new ArrayList<>();
+        if (hasPermission != PackageManager.PERMISSION_GRANTED)
+            permissionList.add(Manifest.permission.READ_CONTACTS);
+
+        if (permissionList.contains(Manifest.permission.READ_CONTACTS))
+            requestPermissions(permissionList.toArray(new String[permissionList.size()]), REQUEST_CODE_PERMISSIONS);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        int readContacts = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_CONTACTS);
+        boolean grantedPermission = readContacts == PackageManager.PERMISSION_GRANTED;
+        boolean requestedPermission = false;
+        for (int i = 0; i < permissions.length; i++) {
+            if (permissions[i].equals(Manifest.permission.READ_CONTACTS) &&
+                    grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                grantedPermission = true;
+                requestedPermission = true;
+            }
+        }
+        if (requestedPermission && grantedPermission) {
+            loadContacts();
         }
     }
 }
