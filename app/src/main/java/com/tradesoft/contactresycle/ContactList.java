@@ -2,6 +2,7 @@ package com.tradesoft.contactresycle;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.ContentUris;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,13 +39,17 @@ public class ContactList extends Fragment {
     private static final String[] PROJECTION = {
             ContactsContract.Contacts._ID,
             ContactsContract.CommonDataKinds.Phone.NUMBER,
+            ContactsContract.RawContacts.ACCOUNT_TYPE,
             ContactsContract.Contacts.LOOKUP_KEY,
             ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
             ContactsContract.Contacts.PHOTO_URI
     };
     private static final int REQUEST_CODE_PERMISSIONS = 0;
-    String selection = ContactsContract.Contacts.HAS_PHONE_NUMBER + " > ?";
-    String[] selectionArgs = new String[]{"0"};
+    //String selection = ContactsContract.Contacts.HAS_PHONE_NUMBER + " > ?";
+    //String[] selectionArgs = new String[]{"0"};
+
+    String selection = ContactsContract.RawContacts.ACCOUNT_TYPE + "= ?";
+    String[] selectionArgs = new String[]{"com.whatsapp"};  // com.whatsapp  org.telegram.messenger.account
 
     private Unbinder unbinder;
     @BindView(R.id.rvContacts)
@@ -135,17 +141,22 @@ public class ContactList extends Fragment {
         getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
             @Override
             public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-                return new CursorLoader(getActivity(), ContactsContract.CommonDataKinds.Phone.CONTENT_URI, PROJECTION, selection, selectionArgs, "display_name ASC");
+                return new CursorLoader(getActivity(), ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, selection, selectionArgs, "display_name ASC");
+                //return new CursorLoader(getActivity(), ContactsContract.RawContacts.CONTENT_URI, null, selection, selectionArgs, "display_name ASC");
             }
 
             @Override
             public void onLoadFinished(Loader<Cursor> objectLoader, Cursor c) {
+                String [] f= c.getColumnNames();
+
                 if (c.getCount() > 0) {
                     while (c.moveToNext()) {
                         Contact contact = new Contact();
                         contact.setUserName(c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)));
                         contact.setPhoneNumber(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
-                        contact.setProfilePicture(c.getString(c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)));
+                        String s = c.getString(c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI));
+                        Log.i("MYTAG"," "+c.getString(c.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_TYPE)));
+                        contact.setProfilePicture(s);
                         loadedContacts.add(contact);
                     }
                 }
