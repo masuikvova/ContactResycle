@@ -1,8 +1,6 @@
 package com.tradesoft.contactresycle;
 
 import android.Manifest;
-import android.annotation.TargetApi;
-import android.content.ContentUris;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -27,7 +25,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -44,12 +41,11 @@ public class ContactList extends Fragment {
             ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
             ContactsContract.Contacts.PHOTO_URI
     };
-    private static final int REQUEST_CODE_PERMISSIONS = 0;
-    //String selection = ContactsContract.Contacts.HAS_PHONE_NUMBER + " > ?";
-    //String[] selectionArgs = new String[]{"0"};
+    String selection = ContactsContract.Contacts.HAS_PHONE_NUMBER + " > ?";
+    String[] selectionArgs = new String[]{"0"};
 
-    String selection = ContactsContract.RawContacts.ACCOUNT_TYPE + "= ?";
-    String[] selectionArgs = new String[]{"com.whatsapp"};  // com.whatsapp  org.telegram.messenger.account
+    //String selection = ContactsContract.RawContacts.ACCOUNT_TYPE + "= ?";
+    //String[] selectionArgs = new String[]{"com.whatsapp"};  // com.whatsapp  org.telegram.messenger.account
 
     private Unbinder unbinder;
     @BindView(R.id.rvContacts)
@@ -131,7 +127,7 @@ public class ContactList extends Fragment {
         super.onActivityCreated(savedInstanceState);
         int readContacts = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_CONTACTS);
         if (readContacts != PackageManager.PERMISSION_GRANTED) {
-            requestPermission();
+            PermissionHelper.requestContactsPermission(getActivity(), this);
         } else {
             loadContacts();
         }
@@ -147,7 +143,7 @@ public class ContactList extends Fragment {
 
             @Override
             public void onLoadFinished(Loader<Cursor> objectLoader, Cursor c) {
-                String [] f= c.getColumnNames();
+                String[] f = c.getColumnNames();
 
                 if (c.getCount() > 0) {
                     while (c.moveToNext()) {
@@ -155,7 +151,7 @@ public class ContactList extends Fragment {
                         contact.setUserName(c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)));
                         contact.setPhoneNumber(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
                         String s = c.getString(c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI));
-                        Log.i("MYTAG"," "+c.getString(c.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_TYPE)));
+                        Log.i("MYTAG", " " + c.getString(c.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_TYPE)));
                         contact.setProfilePicture(s);
                         loadedContacts.add(contact);
                     }
@@ -209,17 +205,6 @@ public class ContactList extends Fragment {
         }
     }
 
-    @TargetApi(23)
-    private void requestPermission() {
-        int hasPermission = getActivity().checkSelfPermission(Manifest.permission.READ_CONTACTS);
-
-        List<String> permissionList = new ArrayList<>();
-        if (hasPermission != PackageManager.PERMISSION_GRANTED)
-            permissionList.add(Manifest.permission.READ_CONTACTS);
-
-        if (permissionList.contains(Manifest.permission.READ_CONTACTS))
-            requestPermissions(permissionList.toArray(new String[permissionList.size()]), REQUEST_CODE_PERMISSIONS);
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
