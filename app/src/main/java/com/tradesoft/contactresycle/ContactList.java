@@ -2,21 +2,16 @@ package com.tradesoft.contactresycle;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
+import android.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -127,46 +123,25 @@ public class ContactList extends Fragment {
         super.onActivityCreated(savedInstanceState);
         int readContacts = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_CONTACTS);
         if (readContacts != PackageManager.PERMISSION_GRANTED) {
-            PermissionHelper.requestContactsPermission(getActivity(), this);
+            PermissionHelper.requestContactsPermission(getActivity());
         } else {
             loadContacts();
         }
     }
 
     private void loadContacts() {
-        getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
+        ContactLoader.load(getActivity(), this, "UA", new ContactLoader.OnContactLoadedCallback() {
             @Override
-            public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-                return new CursorLoader(getActivity(), ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, selection, selectionArgs, "display_name ASC");
-                //return new CursorLoader(getActivity(), ContactsContract.RawContacts.CONTENT_URI, null, selection, selectionArgs, "display_name ASC");
-            }
-
-            @Override
-            public void onLoadFinished(Loader<Cursor> objectLoader, Cursor c) {
-                String[] f = c.getColumnNames();
-
-                if (c.getCount() > 0) {
-                    while (c.moveToNext()) {
-                        Contact contact = new Contact();
-                        contact.setUserName(c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)));
-                        contact.setPhoneNumber(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
-                        String s = c.getString(c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI));
-                        Log.i("MYTAG", " " + c.getString(c.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_TYPE)));
-                        contact.setProfilePicture(s);
-                        loadedContacts.add(contact);
-                    }
-                }
+            public void onLoadFinished(List<Contact> contacts) {
+                loadedContacts.clear();
+                loadedContacts.addAll(contacts);
                 searchContacts.addAll(loadedContacts);
                 adapter.setData(searchContacts);
                 adapter.setSelectedData(checkedContacts);
                 adapter.notifyDataSetChanged();
             }
-
-            @Override
-            public void onLoaderReset(Loader<Cursor> cursorLoader) {
-
-            }
         });
+
     }
 
     private class MyTextWatcher implements TextWatcher {
