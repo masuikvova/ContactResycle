@@ -1,9 +1,11 @@
 package com.tradesoft.contactresycle;
 
 
+import java.util.ArrayList;
+
 public class Contact {
     private String userName;
-    private String phoneNumber;
+    private ArrayList<String> phones = new ArrayList<>();
     private String profilePicture;
 
     public String getUserName() {
@@ -14,12 +16,12 @@ public class Contact {
         this.userName = userName;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public ArrayList<String> getPhones() {
+        return phones;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void addPhoneNumber(String phoneNumber) {
+        phones.add(phoneNumber);
     }
 
     public String getProfilePicture() {
@@ -32,9 +34,11 @@ public class Contact {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        else
-            return phoneNumber.equals(((Contact) obj).getPhoneNumber());
+        Contact c = (Contact) obj;
+        for (String number : phones)
+            for (String objNumber : c.getPhones())
+                if (number.contains(objNumber))
+                    return true;
+        return false;
     }
 }

@@ -11,9 +11,7 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.Log;
 
-import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.google.i18n.phonenumbers.Phonenumber;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +38,6 @@ public class ContactLoader {
     //String[] selectionArgs = new String[]{"com.whatsapp"};  // com.whatsapp  org.telegram.messenger.account
 
     public static void load(final Activity activity, Fragment fragment, final String countryCode, final OnContactLoadedCallback callback) {
-        final PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
         fragment.getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
             @Override
             public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
@@ -56,15 +53,20 @@ public class ContactLoader {
                     while (c.moveToNext()) {
                         Contact contact = new Contact();
                         contact.setUserName(c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)));
-                        try {
-                            Phonenumber.PhoneNumber parsedNumber = phoneUtil.parse(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)), countryCode);
-                            contact.setPhoneNumber(phoneUtil.format(parsedNumber, PhoneNumberUtil.PhoneNumberFormat.E164));
-                            contact.setProfilePicture(c.getString(c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)));
-                            if (!contactsList.contains(contact))
-                                contactsList.add(contact);
-                        } catch (NumberParseException e) {
-                            e.printStackTrace();
+                        contact.setProfilePicture(c.getString(c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)));
+                        //contact.addPhoneNumber(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
+                        String id = c.getString(c.getColumnIndex(ContactsContract.Contacts._ID));
+                        Cursor pCur = activity.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",new String[]{ id }, null);
+                        while (pCur.moveToNext())
+                        {
+                            String contactNumber = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                            contact.addPhoneNumber(contactNumber);
+                            //break;
                         }
+                        pCur.close();
+                        if (!contactsList.contains(contact))
+                            contactsList.add(contact);
+
                     }
                 }
                 if (callback != null)

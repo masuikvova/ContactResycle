@@ -50,7 +50,7 @@ class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHo
                 .bitmapTransform(new CropCircleTransformation(context))
                 .into(holder.ivUserPhoto);
         holder.tvUserName.setText(contact.getUserName());
-        holder.tvPhoneNumber.setText(contact.getPhoneNumber());
+        holder.tvPhoneNumber.setText(contact.getPhones().toString());
         if (selectedDataSet != null && selectedDataSet.size() > 0 && selectedDataSet.contains(contact)) {
             holder.ivActive.setImageResource(R.drawable.ic_selected);
             holder.tvUserName.setTextColor(Color.parseColor("#338f32"));
