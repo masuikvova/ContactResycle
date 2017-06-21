@@ -5,13 +5,12 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.Log;
-
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,8 +53,8 @@ public class ContactLoader {
                         Contact contact = new Contact();
                         contact.setUserName(c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)));
                         contact.setProfilePicture(c.getString(c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)));
-                        //contact.addPhoneNumber(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
-                        String id = c.getString(c.getColumnIndex(ContactsContract.Contacts._ID));
+                        contact.addPhoneNumber(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
+                        /*String id = c.getString(c.getColumnIndex(ContactsContract.Contacts._ID));
                         Cursor pCur = activity.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",new String[]{ id }, null);
                         while (pCur.moveToNext())
                         {
@@ -63,7 +62,7 @@ public class ContactLoader {
                             contact.addPhoneNumber(contactNumber);
                             //break;
                         }
-                        pCur.close();
+                        pCur.close();*/
                         if (!contactsList.contains(contact))
                             contactsList.add(contact);
 

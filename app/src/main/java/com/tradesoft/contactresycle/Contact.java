@@ -21,7 +21,9 @@ public class Contact {
     }
 
     public void addPhoneNumber(String phoneNumber) {
-        phones.add(phoneNumber);
+        if(phoneNumber !=null) {
+            phones.add(phoneNumber.replace("-",""));
+        }
     }
 
     public String getProfilePicture() {
