@@ -22,7 +22,9 @@ public class Contact {
 
     public void addPhoneNumber(String phoneNumber) {
         if(phoneNumber !=null) {
-            phones.add(phoneNumber.replace("-",""));
+            String formatedNumber = phoneNumber.replace("-","");
+            if(!phones.contains(formatedNumber))
+            phones.add(formatedNumber);
         }
     }
 

@@ -40,7 +40,7 @@ public class ContactLoader {
         fragment.getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
             @Override
             public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-                return new CursorLoader(activity, ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, selection, selectionArgs, "display_name ASC");
+                return new CursorLoader(activity, ContactsContract.Contacts.CONTENT_URI, null, null, null, "display_name ASC");
                 //return new CursorLoader(getActivity(), ContactsContract.RawContacts.CONTENT_URI, null, selection, selectionArgs, "display_name ASC");
             }
 
@@ -53,18 +53,20 @@ public class ContactLoader {
                         Contact contact = new Contact();
                         contact.setUserName(c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)));
                         contact.setProfilePicture(c.getString(c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)));
-                        contact.addPhoneNumber(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
-                        /*String id = c.getString(c.getColumnIndex(ContactsContract.Contacts._ID));
-                        Cursor pCur = activity.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",new String[]{ id }, null);
-                        while (pCur.moveToNext())
-                        {
-                            String contactNumber = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                            contact.addPhoneNumber(contactNumber);
-                            //break;
+                        //contact.addPhoneNumber(c.getString(c.getColumnIndex(ContactsContract.Contacts.PHONE)));
+                        int contactCount = Integer.parseInt(c.getString(c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)));
+                        if(contactCount > 0) {
+                            String id = c.getString(c.getColumnIndex(ContactsContract.Contacts._ID));
+                            Cursor pCur = activity.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{id}, null);
+                            while (pCur.moveToNext()) {
+                                String contactNumber = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                                contact.addPhoneNumber(contactNumber);
+                                //break;
+                            }
+                            pCur.close();
+                            if (!contactsList.contains(contact))
+                                contactsList.add(contact);
                         }
-                        pCur.close();*/
-                        if (!contactsList.contains(contact))
-                            contactsList.add(contact);
 
                     }
                 }
